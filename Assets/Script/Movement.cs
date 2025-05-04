@@ -12,17 +12,24 @@ public class Movement : MonoBehaviour
     bool isJumping = false; // 점프 입력이 들어왔는지 확인하는 변수
     bool isGrounded = false; // 바닥에 닿아있는지 확인하는 변수
 
-    [SerializeField] private float dashDelay = 0f; // 대쉬 지연 시간 카운터
+    //[SerializeField] private float dashDelay = 0f; // 대쉬 지연 시간 카운터
     [SerializeField] private float dashTime = 0f; // 대쉬 쿨타임
     [SerializeField] private float dashSpeed = 0.1f; // 대쉬 속도
-    [SerializeField] private float dashLoop = 10f; // 대쉬 지속 시간
-    [SerializeField] private float dashLoopTime = 0.05f; // 대쉬 지속 시간
+    [SerializeField] private float dashLoop = 100f; // 대쉬 지속 시간
+    [SerializeField] private float dashLoopTime = 0.005f; // 대쉬 지속 시간
     private float delayTime = 0f; // 대쉬 지연 시간 카운터
 
     bool isDashing = false; // 대쉬 상태 확인 변수
     private int dashDirection = 1; // 1: 오른쪽, -1: 왼쪽
 
     private bool dashInput = false;
+
+    bool ifDash = true;
+    bool ifJump = true;
+    float dashValue = 0f;
+    float dashValue2 = 0f;
+    bool moveValue = true;
+    public Vector3 direction = Vector3.right;
 
     // 매 프레임마다 호출되는 함수
     void Update()
@@ -31,7 +38,7 @@ public class Movement : MonoBehaviour
             dashInput = true;
         }
         // 위쪽 입력(↑, W)이 눌렸고, 바닥에 있을 때만 점프 가능
-        if (Input.GetAxisRaw("Vertical") > 0 && isGrounded) {
+        if (Input.GetAxisRaw("Vertical") > 0 && isGrounded && ifJump) {
             isJumping = true;
         }
         // 만약 현재 캐릭터가 대시(dash) 중이라면
@@ -40,8 +47,10 @@ public class Movement : MonoBehaviour
     // 물리 연산이 필요한 경우 호출되는 함수
     void FixedUpdate ()
     {
-        Move(); // 이동 처리
-        Jump(); // 점프 처리
+        if (moveValue) {
+            Move(); // 이동 처리
+            Jump(); // 점프 처리
+        }
         if (dashInput) {
             Execute();
             dashInput = false;
@@ -53,19 +62,20 @@ public class Movement : MonoBehaviour
     // 좌우 이동을 처리하는 함수
     void Move() 
     {
-        Vector3 moveVelocity = Vector3.zero; // 이동 방향 초기화
-
+        Vector3 moveVelocity = Vector3.zero;
         // 왼쪽 방향키 또는 A키 입력 시 왼쪽으로 이동
         if (Input.GetAxisRaw("Horizontal") < 0)
         {
             moveVelocity = Vector3.left;
-            dashDirection = -1; // 왼쪽 입력 시 대시 방향도 왼쪽
+            dashDirection = -1; // 왼쪽 입력 시 대시 방향도 
+            direction = Vector3.left; // 바라보는 방향을 왼쪽으로
         }
         // 오른쪽 방향키 또는 D키 입력 시 오른쪽으로 이동
         else if (Input.GetAxisRaw("Horizontal") > 0)
         {
             moveVelocity = Vector3.right;
             dashDirection = 1; // 오른쪽 입력 시 대시 방향도 오른쪽
+            direction = Vector3.right; // 바라보는 방향을 오른쪽으로
         }
         // 실제 위치 이동
         transform.position += moveVelocity * movePower * Time.deltaTime;
@@ -94,6 +104,11 @@ public class Movement : MonoBehaviour
         {
             isGrounded = true;
         }
+        if (collision.gameObject.CompareTag("walls")) {
+            if (ifDash) {
+                ifDash = false;
+            }
+        }
     }
 
     // 바닥에서 떨어졌을 때 호출되는 함수
@@ -104,17 +119,24 @@ public class Movement : MonoBehaviour
         {
             isGrounded = false;
         }
+        if (collision.gameObject.CompareTag("walls")) {
+            if (!ifDash) {
+                ifDash = true;
+            }
+        }
     }
 
     // 대시(dash) 동작을 실행하는 함수
     public void Execute() {
         // 대시 중이거나 쿨타임이 남아있으면 실행 불가
-        if (delayTime < dashDelay || isDashing) {
+        //if (delayTime < dashDelay || isDashing) {
+        if (isDashing) {
             Debug.Log("대시 불가능");
             return;
         }
         delayTime = 0;
         isDashing = true;
+        ifJump = false;
         Debug.Log("대시");
         StartCoroutine(DashCoroutine());
     }
@@ -123,14 +145,24 @@ public class Movement : MonoBehaviour
     private IEnumerator DashCoroutine() {
         // 대시 시작: Y축 이동 고정
         rigid.constraints = RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
-
+        dashValue = 0.01f - dashLoopTime;
+        moveValue = false;
         for (int i = 0; i < dashLoop; i++) {
-            transform.position += Vector3.right * dashDirection * dashSpeed;
-            yield return new WaitForSeconds(dashLoopTime); // 이동 후 잠깐 대기
+            if (ifDash) {
+                transform.position += Vector3.right * dashDirection * dashSpeed;
+                yield return new WaitForSeconds(dashValue); // 이동 후 잠깐 대기
+                dashValue2 += 1.5f;
+                dashValue += 0.001f * dashValue2;
+            }
+            else break;
         }
         // 대시 끝: Y축 이동 고정 해제(회전만 고정)
+        ifJump = true;
+        moveValue = true;
         rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
         yield return new WaitForSeconds(dashTime);
         isDashing = false;
+        dashValue = 0f;
+        dashValue2 = 0f;
     }
 }
