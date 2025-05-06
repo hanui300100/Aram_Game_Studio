@@ -31,6 +31,7 @@ public class Movement : MonoBehaviour
     bool moveValue = true;
     public Vector3 direction = Vector3.right;
 
+
     // 매 프레임마다 호출되는 함수
     void Update()
     {
@@ -134,6 +135,7 @@ public class Movement : MonoBehaviour
             Debug.Log("대시 불가능");
             return;
         }
+
         delayTime = 0;
         isDashing = true;
         ifJump = false;
@@ -147,15 +149,34 @@ public class Movement : MonoBehaviour
         rigid.constraints = RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
         dashValue = 0.01f - dashLoopTime;
         moveValue = false;
+        
+        // 대시 시작 전 위치 저장
+        Vector3 startPosition = transform.position;
+        
         for (int i = 0; i < dashLoop; i++) {
             if (ifDash) {
-                transform.position += Vector3.right * dashDirection * dashSpeed;
-                yield return new WaitForSeconds(dashValue); // 이동 후 잠깐 대기
+                // 다음 위치 계산
+                Vector3 nextPosition = transform.position + Vector3.right * dashDirection * dashSpeed;
+                
+                // 다음 위치에서 충돌 체크
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector3.right * dashDirection, dashSpeed);
+                
+                // 충돌이 감지되고 벽이나 땅이라면 대시 중단
+                if (hit.collider != null && (hit.collider.CompareTag("walls") || hit.collider.CompareTag("Ground")))
+                {
+                    Debug.Log("대시 중 충돌 감지");
+                    break;
+                }
+                
+                // 충돌이 없으면 이동
+                transform.position = nextPosition;
+                yield return new WaitForSeconds(dashValue);
                 dashValue2 += 1.5f;
                 dashValue += 0.001f * dashValue2;
             }
             else break;
         }
+        
         // 대시 끝: Y축 이동 고정 해제(회전만 고정)
         ifJump = true;
         moveValue = true;
