@@ -30,7 +30,13 @@ public class Movement : MonoBehaviour
     float dashValue2 = 0f;
     bool moveValue = true;
     public Vector3 direction = Vector3.right;
+<<<<<<< HEAD
 
+=======
+    public LayerMask groundLayer; // 인스펙터에서 Ground 레이어를 
+    [SerializeField] private GameObject dashTransform1;
+    [SerializeField] private GameObject dashTransform2;
+>>>>>>> a90de829 (재업로드)
 
     // 매 프레임마다 호출되는 함수
     void Update()
@@ -38,11 +44,25 @@ public class Movement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftShift)) {
             dashInput = true;
         }
+<<<<<<< HEAD
         // 위쪽 입력(↑, W)이 눌렸고, 바닥에 있을 때만 점프 가능
         if (Input.GetAxisRaw("Vertical") > 0 && isGrounded && ifJump) {
             isJumping = true;
         }
         // 만약 현재 캐릭터가 대시(dash) 중이라면
+=======
+        
+        // 플레이어 레이어를 제외하고 Ground 레이어만 감지
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 1f, groundLayer);
+        isGrounded = hit.collider != null;
+
+        if (hit.collider != null && hit.collider.CompareTag("Ground"))
+        {
+            if (Input.GetAxisRaw("Vertical") > 0 && ifJump) {
+                isJumping = true;
+            }
+        }
+>>>>>>> a90de829 (재업로드)
     }
 
     // 물리 연산이 필요한 경우 호출되는 함수
@@ -80,6 +100,12 @@ public class Movement : MonoBehaviour
         }
         // 실제 위치 이동
         transform.position += moveVelocity * movePower * Time.deltaTime;
+<<<<<<< HEAD
+=======
+
+        RaycastHit2D hit = Physics2D.Raycast(dashTransform2.transform.position, Vector3.right * dashDirection, dashSpeed);
+        hit = Physics2D.Raycast(dashTransform1.transform.position, Vector3.right * dashDirection, dashSpeed);
+>>>>>>> a90de829 (재업로드)
     }
 
     // 점프를 처리하는 함수
@@ -100,11 +126,14 @@ public class Movement : MonoBehaviour
     // 바닥에 닿았을 때 호출되는 함수
     void OnCollisionEnter2D(Collision2D collision)
     {
+<<<<<<< HEAD
         // 충돌한 오브젝트의 태그가 "Ground"라면 바닥에 닿은 것으로 간주
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
         }
+=======
+>>>>>>> a90de829 (재업로드)
         if (collision.gameObject.CompareTag("walls")) {
             if (ifDash) {
                 ifDash = false;
@@ -115,11 +144,14 @@ public class Movement : MonoBehaviour
     // 바닥에서 떨어졌을 때 호출되는 함수
     void OnCollisionExit2D(Collision2D collision)
     {
+<<<<<<< HEAD
         // 충돌이 끝난 오브젝트의 태그가 "Ground"라면 바닥에서 떨어진 것으로 간주
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = false;
         }
+=======
+>>>>>>> a90de829 (재업로드)
         if (collision.gameObject.CompareTag("walls")) {
             if (!ifDash) {
                 ifDash = true;
@@ -130,16 +162,33 @@ public class Movement : MonoBehaviour
     // 대시(dash) 동작을 실행하는 함수
     public void Execute() {
         // 대시 중이거나 쿨타임이 남아있으면 실행 불가
+<<<<<<< HEAD
         //if (delayTime < dashDelay || isDashing) {
         if (isDashing) {
             Debug.Log("대시 불가능");
+=======
+        if (isDashing) {
+            return;
+        }
+
+        // 대시 시작 전 벽 충돌 체크
+        RaycastHit2D wallCheck0 = Physics2D.Raycast(transform.position, Vector3.right * dashDirection, 0.5f, groundLayer);
+        RaycastHit2D wallCheck1 = Physics2D.Raycast(dashTransform1.transform.position, Vector3.right * dashDirection, 0.5f, groundLayer);
+        RaycastHit2D wallCheck2 = Physics2D.Raycast(dashTransform2.transform.position, Vector3.right * dashDirection, 0.5f, groundLayer);
+
+        // 벽에 붙어있으면 대시 시작하지 않음
+        if (wallCheck1.collider != null || wallCheck2.collider != null) {
+>>>>>>> a90de829 (재업로드)
             return;
         }
 
         delayTime = 0;
         isDashing = true;
         ifJump = false;
+<<<<<<< HEAD
         Debug.Log("대시");
+=======
+>>>>>>> a90de829 (재업로드)
         StartCoroutine(DashCoroutine());
     }
 
@@ -159,6 +208,7 @@ public class Movement : MonoBehaviour
                 Vector3 nextPosition = transform.position + Vector3.right * dashDirection * dashSpeed;
                 
                 // 다음 위치에서 충돌 체크
+<<<<<<< HEAD
                 RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector3.right * dashDirection, dashSpeed);
                 
                 // 충돌이 감지되고 벽이나 땅이라면 대시 중단
@@ -168,6 +218,27 @@ public class Movement : MonoBehaviour
                     break;
                 }
                 
+=======
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector3.right * dashDirection, dashSpeed, groundLayer);
+                // 충돌이 감지되고 벽이나 땅이라면 대시 중단
+                if (hit.collider != null && (hit.collider.CompareTag("Ground")))
+                {
+                    break;
+                }
+
+                hit = Physics2D.Raycast(dashTransform1.transform.position, Vector3.right * dashDirection, dashSpeed, groundLayer);
+                if (hit.collider != null && (hit.collider.CompareTag("Ground")))
+                {
+                    break;
+                }
+
+                hit = Physics2D.Raycast(dashTransform2.transform.position, Vector3.right * dashDirection, dashSpeed, groundLayer);
+                if (hit.collider != null && (hit.collider.CompareTag("Ground")))
+                {
+                    break;
+                }
+
+>>>>>>> a90de829 (재업로드)
                 // 충돌이 없으면 이동
                 transform.position = nextPosition;
                 yield return new WaitForSeconds(dashValue);

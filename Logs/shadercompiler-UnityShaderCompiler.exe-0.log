@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 Base path: 'C:/Program Files/Unity/Hub/Editor/6000.0.48f1/Editor/Data', plugins path 'C:/Program Files/Unity/Hub/Editor/6000.0.48f1/Editor/Data/PlaybackEngines'
+=======
+Base path: 'D:/Utile2/Unity/6000.0.48f1/Editor/Data', plugins path 'D:/Utile2/Unity/6000.0.48f1/Editor/Data/PlaybackEngines'
+>>>>>>> a90de829 (재업로드)
 Cmd: initializeCompiler
 
 Cmd: shutdown
